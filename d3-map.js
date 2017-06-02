@@ -38,10 +38,10 @@
         maxProbability = 0,
         // We're assuming that mins should be 0 if is indeed higher
         // This is for the legend/keys
-        minFive = 0,
-        minFifty = 0,
-        minNinetyFive = 0,
-        minProbability = 0;
+        minFive = 99999,
+        minFifty = 99999,
+        minNinetyFive = 99999,
+        minProbability = 99999;
       $.each(currentGlobalDataset, function(index, value) {
         // Parse these for proper larger/less than
         var five = parseInt(value['0.05']),
@@ -214,11 +214,6 @@
             keywidth = 10,
             boxwidth = 1.5 * keywidth;
 
-
-          var x = d3.scaleLinear()
-              .domain([globalLowerLimitValue, globalUpperLimitValue])
-              .range([0, 240]);
-
           var title = ['Temperature','bins'],
               titleheight = title.length*lineheight + boxmargin;
     
@@ -227,10 +222,10 @@
           var ranges = color.range().length;
 
           // return color thresholds for the key    
-          var qrange = function(max, num) {
+          var qrange = function(min, max, num) {
               var a = [];
               for (var i=0; i<num; i++) {
-                  a.push(i*max/num);
+                  a.push(min+i*(max-min)/num);
               }
               return a;
           }
@@ -265,8 +260,8 @@
           li.selectAll("rect")
               .data(color.range().map(function(thisColor) {
                 var d = color.invertExtent(thisColor);
-                if (d[0] == null) d[0] = x.domain()[0];
-                if (d[1] == null) d[1] = x.domain()[1];
+                if (d[0] == null) d[0] = color.domain()[0];
+                if (d[1] == null) d[1] = color.domain()[1];
                 return d;
               }))
               .enter().append("rect")
@@ -276,7 +271,7 @@
               .style("fill", function(d) { return color(d[0]); });
               
           li.selectAll("text")
-              .data(qrange(color.domain()[1], ranges))
+              .data(qrange(color.domain()[0], color.domain().slice(-1)[0], ranges))
               .enter().append("text")
               .attr("class", "legend-entry")
               .attr("x", keywidth + boxmargin)
