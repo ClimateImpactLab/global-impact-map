@@ -14,6 +14,9 @@
     globalDatasets = './csv/tas_DJF_2040_2059_absolute_degC_percentiles.csv', // CHANGE THIS TO ANY DATASET YOUD LIKE TO GENERATE INTO CHOROPLETH
     regionalTopo = './topo/globalRegions.json'; // This is just the map json
 
+  var div = d3.select("body").append("div")   
+  .attr("class", "tooltip")               
+  .style("opacity", 0);
 
   // Map generation
   var mapGenButton = $('button.generate-map');
@@ -60,7 +63,8 @@
           '0.05': five,
           '0.5': fifty,
           '0.95': ninetyfive,
-          'index': index
+          'index': index,
+          'hierid': hierid
         };
       });
 
@@ -138,9 +142,29 @@
             }
           })
           .attr("d", path)
-          .on('mouseover', function(d) {
-            // console.log('Region: ', d.properties);
+          // .on('mouseover', function(d) {
+          //   console.log('Region: ', d.properties);
+          // });
+
+          // ################################################
+          // MIKE DELGADO'S CODE
+          // ################################################
+          
+          //Adding mouseevents
+          .on("mouseover", function(d) {
+            div.transition().duration(100)
+            .style("opacity", 1)
+            div.text(preppedGlobalDataset[d.properties.hierid]['hierid'] + " : " + preppedGlobalDataset[d.properties.hierid][selectedGlobalPercentile])
+            .style("left", (d3.event.pageX) + "px")
+            .style("top", (d3.event.pageY -30) + "px");
+          })
+          .on("mouseout", function() {
+            div.transition().duration(100)
+            .style("opacity", 0);
           });
+
+          // ################################################
+          // ################################################
 
       });
 
