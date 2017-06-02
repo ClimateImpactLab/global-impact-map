@@ -1,0 +1,32 @@
+div.acf-map-generator__controls select {
+  margin: 0 0 12px;
+}
+
+div.acf-map-generator__controls div.global-numbers {
+  width: 100%;
+  float: left;
+  padding-bottom: 20px;
+}
+
+div.acf-map-generator__controls div.global-number-input {
+  width: 46%;
+  float: left;
+  padding-right: 2%;
+}
+
+div.acf-map-generator__controls div.global-number-input label.disabled {
+  opacity: 0.5;
+}
+
+div.acf-map-generator__map-preview svg {
+  width: 100%;
+  height: auto;
+  fill: #bdbdbd;
+  stroke: #bdbdbd;
+  stroke-width: 0.01px;
+}
+
+div.acf-map-generator__map-preview svg path {
+  stroke: none;
+  stroke-width: 0.01px;
+}
