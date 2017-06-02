@@ -85,10 +85,7 @@
       globalDatasetUpper.val(maxProbability);
 
       // This is where we want to work
-      var color = d3.scaleThreshold()
-        .domain(d3.range(globalLowerLimitValue, globalUpperLimitValue))
-        .range(
-          [
+      var color_palette = [
             '#2e8c93',
             '#55a0a6',
             '#7cb5b9',
@@ -99,8 +96,35 @@
             '#a2697f',
             '#883c58',
             '#6d0e32'
-          ]
-        );
+          ];
+
+      var color = d3.scaleThreshold()
+        .domain(d3.range(globalLowerLimitValue, globalUpperLimitValue))
+        .range(color_palette);
+
+      var ext_color_domain = color_palette.slice(1).forEach(function(thisColor) {
+        return color.invertExtent(thisColor)[0];
+      });
+      
+      var format_color_extent = function(colorExtent) {
+        if (colorExtent[0] === undefined) {
+          return '< ' + globalLowerLimitValue.toString();
+        } else {
+          var first = colorExtent[0].toString;
+        }
+
+        if (colorExtent[1] === undefined) {
+          return '> ' + globalUpperLimitValue.toString();
+        } else {
+          var second = colorExtent[1].toString();
+        }
+
+        return first + ' - ' + second;
+      };
+
+      var legend_labels = color_palette.forEach(function(thisColor) {
+        return format_color_extent(color.invertExtent(thisColor));
+      });
 
       $('div.acf-map-generator__map-preview svg').remove();
       var svg = d3.select($('div.acf-map-generator__map-preview')[0]).append('svg');
@@ -148,6 +172,11 @@
 
           // ################################################
           // MIKE DELGADO'S CODE
+          // 
+          // OnHover tooltip -- diagnostic tool
+          // Should be deleted before going live
+          // 
+          // from http://bl.ocks.org/KoGor/5685876
           // ################################################
           
           //Adding mouseevents
@@ -162,6 +191,97 @@
             div.transition().duration(100)
             .style("opacity", 0);
           });
+
+          // ################################################
+          // ################################################
+          
+
+          // ################################################
+          // MIKE DELGADO'S CODE
+          // 
+          // legend -- diagnostic tool
+          // Should be deleted before going live
+          // 
+          // from http://bl.ocks.org/KoGor/5685876
+          // ################################################
+           
+          //Adding legend for our Choropleth
+
+
+          var boxmargin = 4,
+            lineheight = 8;
+            keyheight = 6,
+            keywidth = 10,
+            boxwidth = 1.5 * keywidth;
+
+
+          var x = d3.scaleLinear()
+              .domain([globalLowerLimitValue, globalUpperLimitValue])
+              .range([0, 240]);
+
+          var title = ['Temperature','bins'],
+              titleheight = title.length*lineheight + boxmargin;
+    
+          var margin = { "left": 10, "top": 10 };
+
+          var ranges = color.range().length;
+
+          // return color thresholds for the key    
+          var qrange = function(max, num) {
+              var a = [];
+              for (var i=0; i<num; i++) {
+                  a.push(i*max/num);
+              }
+              return a;
+          }
+
+
+          // make legend 
+          var legend = svg.append("g")
+              .attr("transform", "translate (-170,-40)")
+              .attr("class", "legend");
+              
+          legend.selectAll("text")
+              .data(title)
+              .enter().append("text")
+              .attr("text-anchor", "middle")
+              .attr("class", "legend-title")
+              .attr("x",  keywidth + boxmargin)
+              .attr("y", function(d, i) { return (i+1)*lineheight-2; })
+              .text(function(d) { return d; })
+
+          // make legend box 
+          var lb = legend.append("rect")
+              .attr("transform", "translate (0,"+titleheight+")")
+              .attr("class", "legend-box")
+              .attr("width", boxwidth)
+              .attr("height", ranges*lineheight+2*boxmargin+lineheight-keyheight);
+
+          // make quantized key legend items
+          var li = legend.append("g")
+              .attr("transform", "translate (8,"+(titleheight)+")")
+              .attr("class", "legend-items");
+
+          li.selectAll("rect")
+              .data(color.range().map(function(thisColor) {
+                var d = color.invertExtent(thisColor);
+                if (d[0] == null) d[0] = x.domain()[0];
+                if (d[1] == null) d[1] = x.domain()[1];
+                return d;
+              }))
+              .enter().append("rect")
+              .attr("y", function(d, i) { return i*lineheight+lineheight-keyheight; })
+              .attr("width", keywidth)
+              .attr("height", keyheight)
+              .style("fill", function(d) { return color(d[0]); });
+              
+          li.selectAll("text")
+              .data(qrange(color.domain()[1], ranges))
+              .enter().append("text")
+              .attr("class", "legend-entry")
+              .attr("x", keywidth + boxmargin)
+              .attr("y", function(d, i) { return (i+1)*lineheight-2; })
+              .text(function(d) { return d.toString(); });
 
           // ################################################
           // ################################################
