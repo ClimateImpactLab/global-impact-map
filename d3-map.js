@@ -138,33 +138,9 @@
             }
           })
           .attr("d", path)
-          // .on('mouseover', function(d) {
-          //   console.log('Region: ', d.properties);
-          // });
-
-          // ################################################
-          // MIKE DELGADO'S CODE
-          // ################################################
-          
-          //Adding mouseevents
-          .on("mouseover", function(d) {
-            d3.select(this).transition().duration(300).style("opacity", 1);
-            div.transition().duration(300)
-            .style("opacity", 1)
-            div.text(nameById[d.properties.region] + " : " + rateById[d.properties.region])
-            .style("left", (d3.event.pageX) + "px")
-            .style("top", (d3.event.pageY -30) + "px");
-          })
-          .on("mouseout", function() {
-            d3.select(this)
-            .transition().duration(300)
-            .style("opacity", 0.8);
-            div.transition().duration(300)
-            .style("opacity", 0);
+          .on('mouseover', function(d) {
+            // console.log('Region: ', d.properties);
           });
-
-          // ################################################
-          // ################################################
 
       });
 
