@@ -99,7 +99,7 @@
           ];
 
       var color = d3.scaleThreshold()
-        .domain(d3.range(globalLowerLimitValue, globalUpperLimitValue))
+        .domain(d3.range(color_palette.length-1).map(function(i) {return (globalLowerLimitValue + (globalUpperLimitValue - globalLowerLimitValue)/(color_palette.length-2)*i)}))
         .range(color_palette);
 
       var ext_color_domain = color_palette.slice(1).forEach(function(thisColor) {
@@ -221,16 +221,6 @@
 
           var ranges = color.range().length;
 
-          // return color thresholds for the key    
-          var qrange = function(min, max, num) {
-              var a = [];
-              for (var i=0; i<num; i++) {
-                  a.push(min+i*(max-min)/num);
-              }
-              return a;
-          }
-
-
           // make legend 
           var legend = svg.append("g")
               .attr("transform", "translate (-170,-40)")
@@ -271,12 +261,12 @@
               .style("fill", function(d) { return color(d[0]); });
               
           li.selectAll("text")
-              .data(qrange(color.domain()[0], color.domain().slice(-1)[0], ranges))
+              .data(color.domain())
               .enter().append("text")
               .attr("class", "legend-entry")
               .attr("x", keywidth + boxmargin)
-              .attr("y", function(d, i) { return (i+1)*lineheight-2; })
-              .text(function(d) { return d.toString(); });
+              .attr("y", function(d, i) { return (i+1)*lineheight-2 + (lineheight*0.5); })
+              .text(function(d) { return String(d); });
 
           // ################################################
           // ################################################
