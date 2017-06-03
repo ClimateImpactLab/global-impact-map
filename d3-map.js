@@ -8,10 +8,14 @@
     globalLowerLimit = $('div.acf-map-generator__controls input.global-lower-limit')
     globalUpperLimit = $('div.acf-map-generator__controls input.global-upper-limit'),
     globalDatasetLower = $('input.global-lower-limit__dataset'),
-    globalDatasetUpper = $('input.global-upper-limit__dataset');
+    globalDatasetUpper = $('input.global-upper-limit__dataset'),
+
+    global_combo_variable = document.getElementById("combobox-variable"),
+    global_combo_relative = document.getElementById("combobox-relative");
+    global_slider_period = document.getElementById("period");
 
   var
-    globalDatasets = './csv/tas_DJF_2040_2059_absolute_degC_percentiles.csv', // CHANGE THIS TO ANY DATASET YOUD LIKE TO GENERATE INTO CHOROPLETH
+    // globalDatasets = './csv/tas_DJF_2040_2059_absolute_degC_percentiles.csv', // CHANGE THIS TO ANY DATASET YOUD LIKE TO GENERATE INTO CHOROPLETH
     regionalTopo = './topo/globalRegions.json'; // This is just the map json
 
   var div = d3.select("body").append("div")   
@@ -23,8 +27,28 @@
   mapGenButton.on('click', function() {
 
     // Get selected dataset
-    var selectedGlobalDataset = globalDatasets,
-        selectedGlobalPercentile = globalPercentileSelect.val();
+    var selectedGlobalPercentile = globalPercentileSelect.val(),
+        selected_variable = global_combo_variable.value,
+        selected_relative = global_combo_relative.value,
+        selected_period = ["1986_2005", "2020_2039", "2040_2059", "2080_2099"][global_slider_period.value];
+
+    var unit;
+
+    if (selected_variable == 'tasmin') {
+      unit = 'days-under-32F';
+    } else if (selected_variable == 'tasmax') {
+      unit = 'days-over-95F';
+    } else {
+      unit = 'degC';
+    }
+
+    var selectedGlobalDataset = (
+          "./csv/"
+          + selected_variable
+          + "_" + selected_period
+          + "_" + selected_relative
+          + "_" + unit
+          + "_percentiles.csv");
 
         console.log(selectedGlobalDataset, selectedGlobalPercentile);
 
