@@ -1,3 +1,5 @@
+var periods = ["1986_2005", "2020_2039", "2040_2059", "2080_2099"];
+
 (function($) {
 
   var
@@ -12,7 +14,7 @@
 
     global_combo_variable = document.getElementById("combobox-variable"),
     global_combo_relative = document.getElementById("combobox-relative");
-    global_slider_period = document.getElementById("period");
+    global_slider_period = document.getElementById("period-slider");
 
   var
     // globalDatasets = './csv/tas_DJF_2040_2059_absolute_degC_percentiles.csv', // CHANGE THIS TO ANY DATASET YOUD LIKE TO GENERATE INTO CHOROPLETH
@@ -30,7 +32,7 @@
     var selectedGlobalPercentile = globalPercentileSelect.val(),
         selected_variable = global_combo_variable.value,
         selected_relative = global_combo_relative.value,
-        selected_period = ["1986_2005", "2020_2039", "2040_2059", "2080_2099"][global_slider_period.value];
+        selected_period = periods[global_slider_period.value];
 
     var unit;
 
@@ -125,30 +127,6 @@
       var color = d3.scaleThreshold()
         .domain(d3.range(color_palette.length-1).map(function(i) {return (globalLowerLimitValue + (globalUpperLimitValue - globalLowerLimitValue)/(color_palette.length-2)*i)}))
         .range(color_palette);
-
-      var ext_color_domain = color_palette.slice(1).forEach(function(thisColor) {
-        return color.invertExtent(thisColor)[0];
-      });
-      
-      var format_color_extent = function(colorExtent) {
-        if (colorExtent[0] === undefined) {
-          return '< ' + globalLowerLimitValue.toString();
-        } else {
-          var first = colorExtent[0].toString;
-        }
-
-        if (colorExtent[1] === undefined) {
-          return '> ' + globalUpperLimitValue.toString();
-        } else {
-          var second = colorExtent[1].toString();
-        }
-
-        return first + ' - ' + second;
-      };
-
-      var legend_labels = color_palette.forEach(function(thisColor) {
-        return format_color_extent(color.invertExtent(thisColor));
-      });
 
       $('div.acf-map-generator__map-preview svg').remove();
       var svg = d3.select($('div.acf-map-generator__map-preview')[0]).append('svg');
@@ -304,3 +282,10 @@
 
 
 })(jQuery);
+
+var mapGenButton = $('button.generate-map');
+var period_slider = document.getElementById("period-slider");
+var period_value = document.getElementById("period-value");
+period_slider.onchange = function() {
+  period_value.innerHTML = periods[period_slider.value].replace("_", " to ");
+}
