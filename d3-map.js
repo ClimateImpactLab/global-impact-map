@@ -101,8 +101,8 @@ var periods = ["1986_2005", "2020_2039", "2040_2059", "2080_2099"];
       console.log( 'Max: ', maxProbability );
       console.log( minProbability + (maxProbability * 0.25) );
 
-      var globalLowerLimitValue = globalLowerLimit.val(),
-        globalUpperLimitValue = globalUpperLimit.val();
+      var globalLowerLimitValue = Number(globalLowerLimit.val()),
+        globalUpperLimitValue = Number(globalUpperLimit.val());
 
       console.log( 'Defined Min: ', globalLowerLimitValue );
       console.log( 'Defined Max: ', globalUpperLimitValue );
