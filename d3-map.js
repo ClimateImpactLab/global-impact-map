@@ -1,10 +1,18 @@
 var periods = ["1986_2005", "2020_2039", "2040_2059", "2080_2099"];
 
 var loaded_csv_data = {}
+    baseWidth = 360,
+    baseHeight = 173
+    postData = {};
 
 var load_dataset = function(filepath, callback) {
+  var 
+    globalDatasetLower = document.getElementById("global-lower-limit__dataset"),
+    globalDatasetUpper = document.getElementById("global-upper-limit__dataset");
 
   if (loaded_csv_data.hasOwnProperty(filepath)) {
+    globalDatasetUpper.value = loaded_csv_data[filepath].maxProbability
+    globalDatasetLower.value = loaded_csv_data[filepath].minProbability
     callback(loaded_csv_data[filepath])
   }
 
@@ -52,6 +60,9 @@ var load_dataset = function(filepath, callback) {
 
     loaded_csv_data[filepath].maxProbability = maxProbability;
     loaded_csv_data[filepath].minProbability = minProbability;
+
+    globalDatasetUpper.value = maxProbability;
+    globalDatasetLower.value = minProbability;
   
     callback(loaded_csv_data[filepath])
   });
@@ -59,15 +70,12 @@ var load_dataset = function(filepath, callback) {
 
 var refreshMap = function() {
 
+  var div = d3.select(document.getElementById("tooltip"));
+
   var
-    baseWidth = 360,
-    baseHeight = 173
-    postData = {},
     globalPercentileSelect = document.getElementById("global-dataset-percentile-list"),
     globalLowerLimit = document.getElementById("global-lower-limit"),
     globalUpperLimit = document.getElementById("global-upper-limit"),
-    globalDatasetLower = document.getElementById("global-lower-limit__dataset"),
-    globalDatasetUpper = document.getElementById("global-upper-limit__dataset"),
 
     global_combo_variable = document.getElementById("combobox-variable"),
     global_combo_relative = document.getElementById("combobox-relative");
@@ -76,10 +84,7 @@ var refreshMap = function() {
   var
     // globalDatasets = './csv/tas_DJF_2040_2059_absolute_degC_percentiles.csv', // CHANGE THIS TO ANY DATASET YOUD LIKE TO GENERATE INTO CHOROPLETH
     regionalTopo = './topo/globalRegions.json'; // This is just the map json
-
-  var div = d3.select("body").append("div")   
-  .attr("class", "tooltip")               
-  .style("opacity", 0);
+    // regionalTopo = './topo/high-res-regions-simplified.topo.json'
 
 
   // Get selected dataset
@@ -119,12 +124,6 @@ var refreshMap = function() {
     var globalLowerLimitValue = Number(globalLowerLimit.value),
       globalUpperLimitValue = Number(globalUpperLimit.value);
 
-    console.log( 'Defined Min: ', globalLowerLimitValue );
-    console.log( 'Defined Max: ', globalUpperLimitValue );
-
-    globalDatasetLower.value = preppedGlobalDataset.minProbability;
-    globalDatasetUpper.value = preppedGlobalDataset.maxProbability;
-
     // This is where we want to work
     var color_palette = [
           '#2e8c93',
@@ -143,177 +142,203 @@ var refreshMap = function() {
       .domain(d3.range(color_palette.length-1).map(function(i) {return (globalLowerLimitValue + (globalUpperLimitValue - globalLowerLimitValue)/(color_palette.length-2)*i)}))
       .range(color_palette);
 
-    $('div.acf-map-generator__map-preview svg').remove();
-    var svg = d3.select($('div.acf-map-generator__map-preview')[0]).append('svg');
+    var svg = d3.select(document.getElementById("globalmap"));
 
-    d3.json(regionalTopo, function(error, map) {
-      if (error) throw error;
-      var projection = d3.geoEquirectangular()
-        .scale(baseWidth / 2 / Math.PI)
-        .translate([0, 0]),
-        path = d3.geoPath().projection(projection);
 
-      svg
-        .attr('width', baseWidth)
-        .attr('height', baseHeight)
-        .attr('viewBox', baseWidth / -2 + ' ' + baseHeight / -2 + ' ' + baseWidth + ' ' + baseHeight);
+    svg
+      .selectAll("path")
+      .attr("fill", function(d) {
+        if ( preppedGlobalDataset[d.properties.hierid] !== 'undefined' && preppedGlobalDataset[d.properties.hierid] !== undefined ) {
+          // console.log( 'Found Region:', d.properties.hierid,  preppedGlobalDataset[d.properties.hierid]  );
+          // If USA regions, ignore
 
-      svg.append("g")
-        .attr("class", "regions")
-        .selectAll("path")
-        .data(topojson.feature(map, map.objects.cil3).features)
-        .enter().append("path")
-        .attr("fill", function(d) {
-          if ( preppedGlobalDataset[d.properties.hierid] !== 'undefined' && preppedGlobalDataset[d.properties.hierid] !== undefined ) {
-            // console.log( 'Found Region:', d.properties.hierid,  preppedGlobalDataset[d.properties.hierid]  );
-            // If USA regions, ignore
+          // if ( d.properties.hierid.substring(0, 3) === 'USA' ) {
+          //   return '#bdbdbd';
+          // } else {
 
-            // if ( d.properties.hierid.substring(0, 3) === 'USA' ) {
-            //   return '#bdbdbd';
-            // } else {
+            // console.log(preppedGlobalDataset[d.properties.hierid][selectedGlobalPercentile]);
+            return color( preppedGlobalDataset[d.properties.hierid][selectedGlobalPercentile]  );
 
-              // console.log(preppedGlobalDataset[d.properties.hierid][selectedGlobalPercentile]);
-              return color( preppedGlobalDataset[d.properties.hierid][selectedGlobalPercentile]  );
+          // }
 
-            // }
+        } else {
+          // console.log( 'Missing Region: ', d.properties.hierid  );
+          return '#bdbdbd';
+        }
+      })
+      // .on('mouseover', function(d) {
+      //   console.log('Region: ', d.properties);
+      // });
 
-          } else {
-            // console.log( 'Missing Region: ', d.properties.hierid  );
-            return '#bdbdbd';
-          }
-        })
-        .attr("d", path)
-        // .on('mouseover', function(d) {
-        //   console.log('Region: ', d.properties);
-        // });
+      // ################################################
+      // OnHover tooltip -- diagnostic tool
+      // Should be deleted before going live
+      // 
+      // from http://bl.ocks.org/KoGor/5685876
+      // ################################################
+      
+      //Adding mouseevents
+      .on("mouseover", function(d) {
+        div.transition().duration(100)
+        .style("opacity", 1)
+      div.text(preppedGlobalDataset[d.properties.hierid]['hierid'] + " : " + preppedGlobalDataset[d.properties.hierid][selectedGlobalPercentile])
+      .style("left", (d3.event.pageX) + "px")
+      .style("top", (d3.event.pageY -30) + "px");
+      })
+      .on("mouseout", function() {
+        div.transition().duration(100)
+        .style("opacity", 0);
+      });
 
-        // ################################################
-        // OnHover tooltip -- diagnostic tool
-        // Should be deleted before going live
-        // 
-        // from http://bl.ocks.org/KoGor/5685876
-        // ################################################
+      // ################################################
+      // End hover tooltip
+      // ################################################
+    
+
+    // ################################################
+    // MIKE DELGADO'S CODE
+    // 
+    // legend -- diagnostic tool
+    // Should be deleted before going live
+    // 
+    // from http://bl.ocks.org/KoGor/5685876
+    // ################################################
+     
+    //Adding legend for our Choropleth
+
+
+    var boxmargin = 4,
+      lineheight = 8;
+      keyheight = 6,
+      keywidth = 10,
+      boxwidth = 1.5 * keywidth;
+
+    var title = ['Temperature','bins'],
+        titleheight = title.length*lineheight + boxmargin;
+
+    var margin = { "left": 10, "top": 10 };
+
+    var ranges = color.range().length;
+
+    // make legend 
+    svg.selectAll("legend").remove()
+    var legend = svg.append("g")
+        .attr("transform", "translate (-170,-40)")
+        .attr("class", "legend")
+        .attr("id", "legend");
         
-        //Adding mouseevents
-        .on("mouseover", function(d) {
-          div.transition().duration(100)
-          .style("opacity", 1)
-          div.text(preppedGlobalDataset[d.properties.hierid]['hierid'] + " : " + preppedGlobalDataset[d.properties.hierid][selectedGlobalPercentile])
-          .style("left", (d3.event.pageX) + "px")
-          .style("top", (d3.event.pageY -30) + "px");
-        })
-        .on("mouseout", function() {
-          div.transition().duration(100)
-          .style("opacity", 0);
-        });
+    legend.selectAll("text")
+        .data(title)
+        .enter().append("text")
+        .attr("text-anchor", "middle")
+        .attr("class", "legend-title")
+        .attr("x",  keywidth + boxmargin)
+        .attr("y", function(d, i) { return (i+1)*lineheight-2; })
+        .text(function(d) { return d; })
 
-        // ################################################
-        // End hover tooltip
-        // ################################################
+    // make legend box 
+    var lb = legend.append("rect")
+        .attr("transform", "translate (0,"+titleheight+")")
+        .attr("class", "legend-box")
+        .attr("width", boxwidth)
+        .attr("height", ranges*lineheight+2*boxmargin+lineheight-keyheight);
+
+    // make quantized key legend items
+    var li = legend.append("g")
+        .attr("transform", "translate (8,"+(titleheight)+")")
+        .attr("class", "legend-items");
+
+    li.selectAll("rect")
+        .data(color.range().map(function(thisColor) {
+          var d = color.invertExtent(thisColor);
+          if (d[0] == null) d[0] = color.domain()[0];
+          if (d[1] == null) d[1] = color.domain()[1];
+          return d;
+        }))
+        .enter().append("rect")
+        .attr("y", function(d, i) { return i*lineheight+lineheight-keyheight; })
+        .attr("width", keywidth)
+        .attr("height", keyheight)
+        .style("fill", function(d) { return color(d[0]); });
         
+    li.selectAll("text")
+        .data(color.domain())
+        .enter().append("text")
+        .attr("class", "legend-entry")
+        .attr("x", keywidth + boxmargin)
+        .attr("y", function(d, i) { return (i+1)*lineheight-2 + (lineheight*0.5); })
+        .text(function(d) { return String(d); });
 
-        // ################################################
-        // MIKE DELGADO'S CODE
-        // 
-        // legend -- diagnostic tool
-        // Should be deleted before going live
-        // 
-        // from http://bl.ocks.org/KoGor/5685876
-        // ################################################
-         
-        //Adding legend for our Choropleth
+    // ################################################
+    // End legend
+    // ################################################
 
-
-        var boxmargin = 4,
-          lineheight = 8;
-          keyheight = 6,
-          keywidth = 10,
-          boxwidth = 1.5 * keywidth;
-
-        var title = ['Temperature','bins'],
-            titleheight = title.length*lineheight + boxmargin;
-
-        var margin = { "left": 10, "top": 10 };
-
-        var ranges = color.range().length;
-
-        // make legend 
-        var legend = svg.append("g")
-            .attr("transform", "translate (-170,-40)")
-            .attr("class", "legend");
-            
-        legend.selectAll("text")
-            .data(title)
-            .enter().append("text")
-            .attr("text-anchor", "middle")
-            .attr("class", "legend-title")
-            .attr("x",  keywidth + boxmargin)
-            .attr("y", function(d, i) { return (i+1)*lineheight-2; })
-            .text(function(d) { return d; })
-
-        // make legend box 
-        var lb = legend.append("rect")
-            .attr("transform", "translate (0,"+titleheight+")")
-            .attr("class", "legend-box")
-            .attr("width", boxwidth)
-            .attr("height", ranges*lineheight+2*boxmargin+lineheight-keyheight);
-
-        // make quantized key legend items
-        var li = legend.append("g")
-            .attr("transform", "translate (8,"+(titleheight)+")")
-            .attr("class", "legend-items");
-
-        li.selectAll("rect")
-            .data(color.range().map(function(thisColor) {
-              var d = color.invertExtent(thisColor);
-              if (d[0] == null) d[0] = color.domain()[0];
-              if (d[1] == null) d[1] = color.domain()[1];
-              return d;
-            }))
-            .enter().append("rect")
-            .attr("y", function(d, i) { return i*lineheight+lineheight-keyheight; })
-            .attr("width", keywidth)
-            .attr("height", keyheight)
-            .style("fill", function(d) { return color(d[0]); });
-            
-        li.selectAll("text")
-            .data(color.domain())
-            .enter().append("text")
-            .attr("class", "legend-entry")
-            .attr("x", keywidth + boxmargin)
-            .attr("y", function(d, i) { return (i+1)*lineheight-2 + (lineheight*0.5); })
-            .text(function(d) { return String(d); });
-
-        // ################################################
-        // End legend
-        // ################################################
-
-    });
   });
 }; // End CSV
 
+var paintMap = function(callback) {
 
+  var div = d3.select("body").append("div")   
+    .attr("class", "tooltip")               
+    .style("opacity", 0)
+    .attr("id", "tooltip");
+
+  var
+    regionalTopo = './topo/globalRegions.json'; // This is just the map json
+    // regionalTopo = './topo/high-res-regions-simplified.topo.json'
+
+  $('div.acf-map-generator__map-preview svg').remove();
+  var svg = d3.select($('div.acf-map-generator__map-preview')[0])
+    .append('svg')
+    .attr("id", "globalmap");
+
+  d3.json(regionalTopo, function(error, map) {
+    if (error) throw error;
+    var projection = d3.geoEquirectangular()
+      .scale(baseWidth / 2 / Math.PI)
+      .translate([0, 0]),
+      path = d3.geoPath().projection(projection);
+
+    svg
+      .attr('width', baseWidth)
+      .attr('height', baseHeight)
+      .attr('viewBox', baseWidth / -2 + ' ' + baseHeight / -2 + ' ' + baseWidth + ' ' + baseHeight);
+
+    svg.append("g")
+      .attr("class", "regions")
+      .selectAll("path")
+      .data(topojson.feature(map, map.objects.cil3).features)
+      .enter().append("path")
+      .attr("fill", function(d) { return "#bdbdbd"; })
+      .attr("d", path);
+
+    callback();
+
+  });
+}; // End CSV
+
+setTimeout(paintMap(refreshMap), 0.01);
 
 // Map generation
 var globalPercentileSelect = document.getElementById("global-dataset-percentile-list");
-globalPercentileSelect.onclick = refreshMap;
+globalPercentileSelect.onchange = function() {setTimeout(refreshMap, 0.01)};
 
 var mapGenButton = document.getElementById("generate-map");
-mapGenButton.onclick = refreshMap;
+mapGenButton.onclick = function() {setTimeout(refreshMap, 0.01)};
 
 var global_combo_variable = document.getElementById("combobox-variable");
-global_combo_variable.onchange = refreshMap;
+global_combo_variable.onchange = function() {setTimeout(refreshMap, 0.01)};
 
 var global_combo_relative = document.getElementById("combobox-relative");
-global_combo_relative.onchange = refreshMap;
+global_combo_relative.onchange = function() {setTimeout(refreshMap, 0.01)};
 
 var global_slider_period = document.getElementById("period-slider");
-global_slider_period.onchange = refreshMap;
+global_slider_period.onchange = function() {setTimeout(refreshMap, 0.01)};
 
 var mapGenButton = $('button.generate-map');
 var period_slider = document.getElementById("period-slider");
 var period_value = document.getElementById("period-value");
 period_slider.onchange = function() {
   period_value.innerHTML = periods[period_slider.value].replace("_", " to ");
-  refreshMap();
+  setTimeout(refreshMap, 0.01);
 }
