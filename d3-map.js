@@ -93,14 +93,18 @@ var refreshMap = function() {
       selected_relative = global_combo_relative.value,
       selected_period = periods[global_slider_period.value];
 
-  var unit;
+  var filepath_unit,
+    unit_name;
 
   if (selected_variable == 'tasmin') {
-    unit = 'days-under-32F';
+    filepath_unit = 'days-under-32F';
+    unit_name = ['Count of days'];
   } else if (selected_variable == 'tasmax') {
-    unit = 'days-over-95F';
+    filepath_unit = 'days-over-95F';
+    unit_name = ['Count of days'];
   } else {
-    unit = 'degC';
+    filepath_unit = 'degC';
+    unit_name = ['Temperature', 'bins'];
   }
 
   var selectedGlobalDataset = (
@@ -108,7 +112,7 @@ var refreshMap = function() {
         + selected_variable
         + "_" + selected_period
         + "_" + selected_relative
-        + "_" + unit
+        + "_" + filepath_unit
         + "_percentiles.csv");
 
       console.log(selectedGlobalDataset, selectedGlobalPercentile);
@@ -213,25 +217,30 @@ var refreshMap = function() {
       keywidth = 10,
       boxwidth = 1.5 * keywidth;
 
-    var title = ['Temperature','bins'],
-        titleheight = title.length*lineheight + boxmargin;
+    var titleheight = unit_name.length*lineheight + boxmargin;
 
     var margin = { "left": 10, "top": 10 };
 
     var ranges = color.range().length;
 
     // make legend 
-    svg.selectAll("legend").remove()
+    // var legend = svg.select(document.getElementById("legend"));
+        
+    try {document.getElementById("legend").remove();} catch(err) {};
+    // document.getElementById("legend-title").remove();
+    // document.getElementById("legend-box").remove();
+    // document.getElementById("legend-items").remove();
     var legend = svg.append("g")
         .attr("transform", "translate (-170,-40)")
         .attr("class", "legend")
         .attr("id", "legend");
-        
+
     legend.selectAll("text")
-        .data(title)
+        .data(unit_name)
         .enter().append("text")
         .attr("text-anchor", "middle")
         .attr("class", "legend-title")
+        .attr("id", "legend-title")
         .attr("x",  keywidth + boxmargin)
         .attr("y", function(d, i) { return (i+1)*lineheight-2; })
         .text(function(d) { return d; })
@@ -240,13 +249,15 @@ var refreshMap = function() {
     var lb = legend.append("rect")
         .attr("transform", "translate (0,"+titleheight+")")
         .attr("class", "legend-box")
+        .attr("id", "legend-box")
         .attr("width", boxwidth)
         .attr("height", ranges*lineheight+2*boxmargin+lineheight-keyheight);
 
     // make quantized key legend items
     var li = legend.append("g")
         .attr("transform", "translate (8,"+(titleheight)+")")
-        .attr("class", "legend-items");
+        .attr("class", "legend-items")
+        .attr("id", "legend-items");
 
     li.selectAll("rect")
         .data(color.range().map(function(thisColor) {
@@ -311,6 +322,12 @@ var paintMap = function(callback) {
       .enter().append("path")
       .attr("fill", function(d) { return "#bdbdbd"; })
       .attr("d", path);
+
+
+    // var legend = svg.append("g")
+    //   .attr("transform", "translate (-170,-40)")
+    //   .attr("class", "legend")
+    //   .attr("id", "legend");
 
     callback();
 

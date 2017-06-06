@@ -45,6 +45,7 @@ div.acf-map-generator__map-preview svg path {
 .legend {
   top: -200px;
   left: -200px;
+  border: 0px;      
 }
 
 .legend-title {
@@ -57,6 +58,7 @@ div.acf-map-generator__map-preview svg path {
     fill: none;
     stroke: #888;
     font-size: 7px;
+    border: 0px;      
 }
 
 .legend-entry {
