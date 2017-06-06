@@ -287,7 +287,7 @@ var refreshMap = function() {
   });
 }; // End CSV
 
-var paintMap = function(callback) {
+var drawMap = function(callback) {
 
   var div = d3.select("body").append("div")   
     .attr("class", "tooltip")               
@@ -334,7 +334,7 @@ var paintMap = function(callback) {
   });
 }; // End CSV
 
-setTimeout(paintMap(refreshMap), 0.01);
+setTimeout(drawMap(refreshMap), 0.01);
 
 // Map generation
 var globalPercentileSelect = document.getElementById("global-dataset-percentile-list");
