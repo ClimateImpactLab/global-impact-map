@@ -29,9 +29,76 @@ var load_dataset = function(filepath, callback) {
   });
 }
 
-var refreshMap = function() {
 
-  var div = d3.select(document.getElementById("tooltip"));
+var div = d3.select("body").append("div")   
+  .attr("class", "tooltip")               
+  .style("opacity", 0)
+  .attr("id", "tooltip");
+
+var
+  regionalTopo = './topo/globalRegions.json'; // This is just the map json
+  // regionalTopo = './topo/high-res-regions-simplified.topo.json'
+
+var svg = d3.select($('div.acf-map-generator__map-preview')[0])
+  .append('svg')
+  .attr("id", "globalmap")
+  .attr("width", baseWidth)
+  .attr("height", baseHeight);
+
+var zoom = d3.zoom()
+    .scaleExtent([1, 100])
+    // .translateExtent([[-100, -100], [baseWidth, baseHeight]])
+    .on("zoom", zoomed);
+
+var g = svg.append("g");
+
+d3.json(regionalTopo, function(error, map) {
+  if (error) throw error;
+  var projection = d3.geoEquirectangular()
+    .scale(baseWidth / 2 / Math.PI)
+    .translate([0, 0]),
+    path = d3.geoPath().projection(projection);
+
+  svg
+    .attr('width', baseWidth)
+    .attr('height', baseHeight)
+    .attr('viewBox', baseWidth / -2 + ' ' + baseHeight / -2 + ' ' + baseWidth + ' ' + baseHeight);
+
+  g
+    .attr("class", "regions")
+    .selectAll("path")
+    .data(topojson.feature(map, map.objects.cil3).features)
+    .enter().append("path")
+    .attr("fill", function(d) { 
+        if (d.properties.hierid.substring(0, 3) === "CA-") {
+            return "#fff";
+        } else {
+            return "#bdbdbd";
+        }
+      })
+    .attr("d", path);
+
+
+  // var legend = svg.append("g")
+  //   .attr("transform", "translate (-170,-40)")
+  //   .attr("class", "legend")
+  //   .attr("id", "legend");
+
+  setTimeout(refreshMap, 0.01);
+
+});
+
+
+svg
+    .call(zoom);
+
+
+function zoomed() {
+  g.attr("transform", d3.event.transform);
+}
+
+
+var refreshMap = function() {
 
   var
     globalPercentileSelect = document.getElementById("global-dataset-percentile-list"),
@@ -77,7 +144,9 @@ var refreshMap = function() {
         "./color_palettes/"
         + selected_variable
         + "_" + selected_relative
-        + ".json");
+        + ".json"
+        // Prevent caching to allow file update
+        + '?' + Math.floor(Math.random() * 1000));
 
   d3.json(formatFile, function(err, format) {
     if (err) throw err;
@@ -95,9 +164,6 @@ var refreshMap = function() {
         .domain(bins.slice(1, bins.length-1))
         .range(color_palette);
 
-      var svg = d3.select(document.getElementById("globalmap"));
-
-
       svg
         .selectAll("path")
         .attr("fill", function(d) {
@@ -105,14 +171,16 @@ var refreshMap = function() {
             // console.log( 'Found Region:', d.properties.hierid,  preppedGlobalDataset[d.properties.hierid]  );
             // If USA regions, ignore
 
-            // if ( d.properties.hierid.substring(0, 3) === 'USA' ) {
+            if (d.properties.hierid.substring(0, 3) === "CA-") {
+                return "#fff";
+            // } else if ( d.properties.hierid.substring(0, 3) === 'USA' ) {
             //   return '#bdbdbd';
-            // } else {
+            } else {
 
               // console.log(preppedGlobalDataset[d.properties.hierid][selectedGlobalPercentile]);
               return color( preppedGlobalDataset[d.properties.hierid][selectedGlobalPercentile]  );
 
-            // }
+            }
 
           } else {
             // console.log( 'Missing Region: ', d.properties.hierid  );
@@ -132,11 +200,12 @@ var refreshMap = function() {
         
         //Adding mouseevents
         .on("mouseover", function(d) {
+          if (d.properties.hierid.substring(0, 3) === "CA-") { return ;}
           div.transition().duration(100)
-          .style("opacity", 1)
-        div.text(preppedGlobalDataset[d.properties.hierid]['hierid'] + " : " + preppedGlobalDataset[d.properties.hierid][selectedGlobalPercentile])
-        .style("left", (d3.event.pageX) + "px")
-        .style("top", (d3.event.pageY -30) + "px");
+            .style("opacity", 1)
+          div.text(preppedGlobalDataset[d.properties.hierid]['hierid'] + " : " + preppedGlobalDataset[d.properties.hierid][selectedGlobalPercentile])
+            .style("left", (d3.event.pageX) + "px")
+            .style("top", (d3.event.pageY -30) + "px");
         })
         .on("mouseout", function() {
           div.transition().duration(100)
@@ -235,55 +304,7 @@ var refreshMap = function() {
 
     });
   });
-}; // End CSV
-
-var drawMap = function(callback) {
-
-  var div = d3.select("body").append("div")   
-    .attr("class", "tooltip")               
-    .style("opacity", 0)
-    .attr("id", "tooltip");
-
-  var
-    regionalTopo = './topo/globalRegions.json'; // This is just the map json
-    // regionalTopo = './topo/high-res-regions-simplified.topo.json'
-
-  var svg = d3.select($('div.acf-map-generator__map-preview')[0])
-    .append('svg')
-    .attr("id", "globalmap");
-
-  d3.json(regionalTopo, function(error, map) {
-    if (error) throw error;
-    var projection = d3.geoEquirectangular()
-      .scale(baseWidth / 2 / Math.PI)
-      .translate([0, 0]),
-      path = d3.geoPath().projection(projection);
-
-    svg
-      .attr('width', baseWidth)
-      .attr('height', baseHeight)
-      .attr('viewBox', baseWidth / -2 + ' ' + baseHeight / -2 + ' ' + baseWidth + ' ' + baseHeight);
-
-    svg.append("g")
-      .attr("class", "regions")
-      .selectAll("path")
-      .data(topojson.feature(map, map.objects.cil3).features)
-      .enter().append("path")
-      .attr("fill", function(d) { return "#bdbdbd"; })
-      .attr("d", path);
-
-
-    // var legend = svg.append("g")
-    //   .attr("transform", "translate (-170,-40)")
-    //   .attr("class", "legend")
-    //   .attr("id", "legend");
-
-    callback();
-
-  });
-}; // End CSV
-
-setTimeout(drawMap(refreshMap), 0.01);
+}; // End refreshMap
 
 // Map generation
 var globalPercentileSelect = document.getElementById("global-dataset-percentile-list");
