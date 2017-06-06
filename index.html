@@ -50,32 +50,13 @@
     </select>
      at 
     <select class="global-dataset-percentile-list" id="global-dataset-percentile-list">
-				<option value="0.05">1-in-20 low</option>
-				<option value="0.5" selected>median</option>
-				<option value="0.95">1-in-20 high</option>
-			</select>
+			<option value="0.05">1-in-20 low</option>
+			<option value="0.5" selected>median</option>
+			<option value="0.95">1-in-20 high</option>
+		</select>
 
     probability
 
-    <br/>
-    <div class="global-numbers">
-      <div class="global-number-input">
-        <label>Lower Limit</label>
-        <input type="number" class="global-lower-limit" id="global-lower-limit" value="0"/>
-      </div>
-      <div class="global-number-input">
-        <label class="disabled">Dataset Lower</label>
-        <input type="number" class="global-lower-limit__dataset disabled" id="global-lower-limit__dataset" />
-      </div>
-      <div class="global-number-input">
-        <label>Upper Limit</label>
-        <input type="number" class="global-upper-limit" id="global-upper-limit" value="100"/>
-      </div>
-      <div class="global-number-input">
-        <label class="disabled">Dataset Upper</label>
-        <input type="number" class="global-upper-limit__dataset disabled" id="global-upper-limit__dataset" />
-      </div>
-    </div>
     <br />
     <input type="range" id="period-slider" value="3" step="1" min="0" max="3" data-show-value="true">
     <div><span class="period">Period: </span><span class="period" id="period-value">2080 to 2099</span></div>
