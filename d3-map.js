@@ -107,7 +107,7 @@ var refreshMap = function() {
     global_slider_period = document.getElementById("period-slider");
 
   var
-    // globalDatasets = './csv/tas_DJF_2040_2059_absolute_degC_percentiles.csv', // CHANGE THIS TO ANY DATASET YOUD LIKE TO GENERATE INTO CHOROPLETH
+    // globalDatasets = './csv/tas_DJF_2040_2059_absolute_degF_percentiles.csv', // CHANGE THIS TO ANY DATASET YOUD LIKE TO GENERATE INTO CHOROPLETH
     regionalTopo = './topo/globalRegions.json'; // This is just the map json
     // regionalTopo = './topo/high-res-regions-simplified.topo.json'
 
@@ -128,7 +128,7 @@ var refreshMap = function() {
     filepath_unit = 'days-over-95F';
     unit_name = ['Count of days'];
   } else {
-    filepath_unit = 'degC';
+    filepath_unit = 'degF';
     unit_name = ['Temperature', 'bins'];
   }
 
