@@ -32,30 +32,55 @@
 
   <div class="acf-map-generator__controls">
     <h5>Controls</h5>
-    <button class="button generate-map">Generate Map</button>
-    <select class="global-dataset-percentile-list">
+    Show 
+
+    <select id="combobox-variable">
+      <option value="tas_DJF">Dec-Jan-Feb average temperature</option>
+      <option value="tas_MAM">Mar-Apr-May average temperature</option>
+      <option value="tas_JJA" selected>Jun-Jul-Aug average temperature</option>
+      <option value="tas_SON">Sep-Oct-Nov average temperature</option>
+      <option value="tasmax">days with maxmimum temperature over 95F</option>
+      <option value="tasmin">days with minimum temperature under 32F</option>
+    </select>
+    
+     as 
+    <select id="combobox-relative">
+      <option value="absolute">absolute values</option>
+      <option value="change-from-hist">change from historical</option>
+    </select>
+
+    <br/>
+    
+    <select class="global-dataset-percentile-list" id="global-dataset-percentile-list">
 				<option value="0.05">0.05</option>
-				<option value="0.5">0.50</option>
+				<option value="0.5" selected>0.50</option>
 				<option value="0.95">0.95</option>
 			</select>
     <div class="global-numbers">
       <div class="global-number-input">
         <label>Lower Limit</label>
-        <input type="number" class="global-lower-limit" />
+        <input type="number" class="global-lower-limit" id="global-lower-limit" value="0"/>
       </div>
       <div class="global-number-input">
         <label class="disabled">Dataset Lower</label>
-        <input type="number" class="global-lower-limit__dataset disabled" />
+        <input type="number" class="global-lower-limit__dataset disabled" id="global-lower-limit__dataset" />
       </div>
       <div class="global-number-input">
         <label>Upper Limit</label>
-        <input type="number" class="global-upper-limit" />
+        <input type="number" class="global-upper-limit" id="global-upper-limit" value="100"/>
       </div>
       <div class="global-number-input">
         <label class="disabled">Dataset Upper</label>
-        <input type="number" class="global-upper-limit__dataset disabled" />
+        <input type="number" class="global-upper-limit__dataset disabled" id="global-upper-limit__dataset" />
       </div>
     </div>
+    <br />
+    <input type="range" id="period-slider" value="3" step="1" min="0" max="3" data-show-value="true">
+    <div><span class="period">Period: </span><span class="period" id="period-value">2080 to 2099</span></div>
+    <br />
+
+    <button class="button generate-map" id="generate-map">Generate Map</button>
+
   </div>
   <div class="acf-map-generator__map-preview">
     <h5>Map Preview</h5>
