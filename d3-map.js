@@ -46,7 +46,7 @@ var svg = d3.select($('div.acf-map-generator__map-preview')[0])
   .attr("height", baseHeight);
 
 var zoom = d3.zoom()
-    .scaleExtent([1, 40])
+    .scaleExtent([1, 100])
     // .translateExtent([[-100, -100], [baseWidth, baseHeight]])
     .on("zoom", zoomed);
 
@@ -144,7 +144,9 @@ var refreshMap = function() {
         "./color_palettes/"
         + selected_variable
         + "_" + selected_relative
-        + ".json");
+        + ".json"
+        // Prevent caching to allow file update
+        + '?' + Math.floor(Math.random() * 1000));
 
   d3.json(formatFile, function(err, format) {
     if (err) throw err;
