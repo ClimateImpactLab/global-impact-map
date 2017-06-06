@@ -298,7 +298,6 @@ var drawMap = function(callback) {
     regionalTopo = './topo/globalRegions.json'; // This is just the map json
     // regionalTopo = './topo/high-res-regions-simplified.topo.json'
 
-  $('div.acf-map-generator__map-preview svg').remove();
   var svg = d3.select($('div.acf-map-generator__map-preview')[0])
     .append('svg')
     .attr("id", "globalmap");
