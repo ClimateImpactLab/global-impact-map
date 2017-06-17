@@ -23,7 +23,6 @@ var load_dataset = function(filepath, callback) {
         'index': index,
         'hierid': value['hierid']
       };
-      console.log(Math.max(loaded_csv_data[filepath][value['0.05']])
     });
     
     callback(loaded_csv_data[filepath])
