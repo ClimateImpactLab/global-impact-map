@@ -23,6 +23,7 @@ var load_dataset = function(filepath, callback) {
         'index': index,
         'hierid': value['hierid']
       };
+      console.log(Math.max(loaded_csv_data[filepath][value['0.05']])
     });
     
     callback(loaded_csv_data[filepath])
@@ -155,14 +156,16 @@ var refreshMap = function() {
     load_dataset(selectedGlobalDataset, function(preppedGlobalDataset) {
 
       // This is where we want to work
-      var color_palette = format.color_palette;
+      var color_palette = format.color_palette2;
       var bins = []
 
-      format.bins.forEach(function(d, i) {bins.push(Number(d))});
+      format.bins2.forEach(function(d, i) {bins.push(Number(d))});
 
+      // console.log(bins)
       var color = d3.scaleThreshold()
         .domain(bins.slice(1, bins.length-1))
         .range(color_palette);
+
 
       svg
         .selectAll("path")
@@ -280,8 +283,10 @@ var refreshMap = function() {
       li.selectAll("rect")
           .data(color.range().map(function(thisColor) {
             var d = color.invertExtent(thisColor);
+            // console.log(color.domain())
             if (d[0] == null) d[0] = color.domain()[0] - 1;
             if (d[1] == null) d[1] = color.domain()[1] + 1;
+            // console.log(d)
             return d;
           }))
           .enter().append("rect")
